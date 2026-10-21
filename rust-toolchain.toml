@@ -1,0 +1,9 @@
+# The toolchain this project builds with, pinned so that a new Rust release
+# cannot change the build overnight (new lints, new compiler behaviour).
+# Raise it deliberately together with `rust-version` in Cargo.toml
+# (docs/guidelines/update.md). rustup installs it on first use.
+[toolchain]
+channel = "1.99.1"
+profile = "minimal"
+components = ["clippy", "rustfmt"]
+# No extra targets: the app is built for the Mac it runs on (Apple Silicon).

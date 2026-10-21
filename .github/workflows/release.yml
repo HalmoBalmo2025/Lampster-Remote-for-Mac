@@ -1,0 +1,41 @@
+# Builds "Lampster Remote.app" for Apple Silicon and attaches it as a ZIP to
+# a GitHub release, whenever a version tag is pushed:
+#
+#   git tag v1.0.0 && git push origin v1.0.0
+#
+# The tag should match `version` in Cargo.toml. The app is signed ad hoc,
+# not with an Apple Developer ID, so macOS asks users to allow it once
+# (see "Install" in the README).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Toolchain
+        run: rustup toolchain install
+
+      - name: Build the app
+        run: ./scripts/bundle.sh --build-only
+
+      - name: Zip
+        run: ditto -c -k --keepParent "target/Lampster Remote.app" "Lampster-Remote-${GITHUB_REF_NAME}.zip"
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "Lampster-Remote-${GITHUB_REF_NAME}.zip" \
+            --title "Lampster Remote for Mac (unofficial) ${GITHUB_REF_NAME}" \
+            --notes "For Macs with Apple Silicon and macOS 14 or later. See the README for how to install it."

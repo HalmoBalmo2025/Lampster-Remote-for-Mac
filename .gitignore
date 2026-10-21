@@ -1,0 +1,46 @@
+# Build output of cargo; scripts/check.sh writes its reports to
+# target/rostfrei/.
+/target/
+
+# macOS
+.DS_Store
+
+# A full `cargo mutants` run outside scripts/check.sh
+/mutants.out*/
+
+# Backups of rustfmt
+**/*.rs.bk
+
+# Local Claude Code settings, not part of the project
+.claude/settings.local.json
+
+# ---------------------------------------------------------------------
+# Not needed to build the app. These entries do not untrack what is
+# already committed: `git rm --cached <path>` takes a file out of the
+# repository and keeps it on disk.
+# ---------------------------------------------------------------------
+
+# Claude Code and the rostfrei rules it works by
+/CLAUDE.md
+/.claude/
+/.rostfrei
+/ROSTFREI-VORSCHLAEGE.md
+/docs/guidelines/
+
+# The gate: lints, licences, spelling, mutants, the pre-commit hook.
+# Without them scripts/check.sh fails; `cargo build` does not need them.
+/clippy.toml
+/deny.toml
+/_typos.toml
+/.cargo/
+/scripts/check.sh
+/scripts/hooks/
+
+# Tests. Without them `cargo test` and scripts/test-swift.sh fail (the
+# tests in src/*.rs read fixtures/); `cargo build` and scripts/bundle.sh
+# do not need them.
+/src/controller/tests/
+/helpers/tests/
+/fixtures/
+/proptest-regressions/
+/scripts/test-swift.sh

@@ -1,0 +1,49 @@
+# A workspace of its own, so that cargo builds this package also inside
+# another one's folder.
+[workspace]
+
+[package]
+name = "lampster-remote"
+version = "1.0.0"
+publish = false
+license = "MIT"
+edition = "2024"
+# Same version as rust-toolchain.toml.
+rust-version = "1.99.1"
+description = "Menu bar app that controls The Lampster, a Bluetooth lamp, from a Mac"
+
+[dependencies]
+# Messages to and from the Swift helpers, one JSON line per message, and
+# the preferences file.
+serde = { version = "1", features = ["derive"] }
+# The JSON encoding of those messages and of the preferences file.
+serde_json = "1"
+# Error enums.
+thiserror = "2"
+# Wall-clock time: the log's local time, the timers' time of day (with
+# daylight saving), the supervisor's failure window.
+jiff = "0.2"
+# Killing a helper together with the processes it started (its process
+# group), which std cannot.
+rustix = { version = "1", default-features = false, features = ["std", "process"] }
+
+# Only for the tests; listed so that Cargo.lock matches.
+[dev-dependencies]
+# Property tests: random event sequences against the controller.
+proptest = { version = "1", default-features = false, features = ["std"] }
+# Every variant of an enum, to check the hand-written lists of them.
+strum = { version = "0.28", default-features = false, features = ["derive"] }
+# Folders of their own for tests that touch files, removed afterwards.
+tempfile = { version = "3", default-features = false }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+# No unwinding: a panic ends the program at once.
+panic = "abort"
+# Debug info out, symbol names in: a crash report still shows the
+# functions.
+strip = "debuginfo"
+# An overflow stops the program instead of computing on.
+overflow-checks = true

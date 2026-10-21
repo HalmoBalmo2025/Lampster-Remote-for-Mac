@@ -1,0 +1,48 @@
+# Builds the app as someone who clones the repository would: the Rust core
+# and both Swift helpers, through scripts/bundle.sh, and attaches it to the
+# run as a ZIP (Actions → the run → Artifacts). The gate and the tests
+# are not published, so they run only on the developer's Mac (pre-commit
+# hook, scripts/check.sh). Runs on every push to main and by hand
+# (Actions → Build → Run workflow), on an Apple Silicon Mac, because the
+# helpers need the macOS SDK.
+name: Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v5
+
+      # The pinned version from rust-toolchain.toml.
+      - name: Toolchain
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build the app
+        run: ./scripts/bundle.sh --build-only
+
+      # Zipped with ditto first, as an artifact's own ZIP drops the
+      # executable bits the app needs.
+      - name: Zip
+        run: ditto -c -k --keepParent "target/Lampster Remote.app" "Lampster-Remote-${GITHUB_SHA::7}.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lampster-Remote-${{ github.sha }}
+          path: Lampster-Remote-*.zip
+          if-no-files-found: error
